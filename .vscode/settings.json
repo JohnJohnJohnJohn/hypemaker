@@ -1,0 +1,58 @@
+{
+    // Python interpreter - points to local .venv
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+    
+    // Automatically activate virtual environment in terminal
+    "python.terminal.activateEnvironment": true,
+    "python.terminal.activateEnvInCurrentTerminal": true,
+    
+    // Use the local .venv for all Python operations
+    "python.venvPath": "${workspaceFolder}",
+    "python.venvFolders": [".venv"],
+    
+    // Terminal profile that auto-creates and activates venv
+    "terminal.integrated.profiles.linux": {
+        "bash (venv)": {
+            "path": "bash",
+            "args": ["--init-file", "${workspaceFolder}/.vscode/venv-init.sh"]
+        }
+    },
+    "terminal.integrated.profiles.osx": {
+        "bash (venv)": {
+            "path": "bash",
+            "args": ["--init-file", "${workspaceFolder}/.vscode/venv-init.sh"]
+        },
+        "zsh (venv)": {
+            "path": "zsh",
+            "args": ["-c", "source ${workspaceFolder}/.vscode/venv-init.sh && exec zsh"]
+        }
+    },
+    "terminal.integrated.profiles.windows": {
+        "PowerShell (venv)": {
+            "source": "PowerShell",
+            "args": ["-NoExit", "-File", "${workspaceFolder}/.vscode/venv-init.ps1"]
+        }
+    },
+    
+    // Set default terminal profile to use venv-enabled bash
+    "terminal.integrated.defaultProfile.linux": "bash (venv)",
+    "terminal.integrated.defaultProfile.osx": "bash (venv)",
+    "terminal.integrated.defaultProfile.windows": "PowerShell (venv)",
+    
+    // Ensure tasks and debugging use the venv Python
+    "python.analysis.extraPaths": ["${workspaceFolder}/.venv/lib/python*/site-packages"],
+    
+    // Testing configuration to use venv
+    "python.testing.pytestEnabled": true,
+    "python.testing.cwd": "${workspaceFolder}",
+    
+    // Jupyter uses venv kernel
+    "jupyter.notebookFileRoot": "${workspaceFolder}",
+    
+    // Formatting/linting use venv tools
+    "python.formatting.provider": "none",
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true
+    }
+}
