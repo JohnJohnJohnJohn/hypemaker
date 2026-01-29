@@ -153,7 +153,7 @@
           </div>
 
           <div class="card model-card">
-            <h3>Model Outputs</h3>
+            <h3>DCF Model Outputs</h3>
             <div class="output-grid">
               <div class="output-item">
                 <span class="output-label">Annualized volume</span>
@@ -187,6 +187,112 @@
             <div class="note">
               Outputs update automatically when live stats refresh or when you change
               assumptions.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="exchange-comps">
+        <div class="section-header">
+          <h2>Exchange Comparables</h2>
+          <p>
+            Value HYPE like a traditional exchange (HKEX, CME, ICE) using revenue and
+            earnings multiples. Adjust for crypto growth premium and risk discount.
+          </p>
+        </div>
+        <div class="grid model-grid">
+          <div class="card model-card">
+            <h3>Comparable Assumptions</h3>
+            <form class="form-grid" id="comps-form">
+              <label class="form-field">
+                <span>Revenue multiple (P/S)</span>
+                <input id="revenue-multiple" type="number" step="0.5" value="16" />
+                <span class="helper-text">HKEX/CME trade at ~16x revenue</span>
+              </label>
+              <label class="form-field">
+                <span>Operating margin (%)</span>
+                <input id="operating-margin" type="number" step="1" value="70" />
+                <span class="helper-text">Exchange margins typically 50-80%</span>
+              </label>
+              <label class="form-field">
+                <span>Earnings multiple (P/E)</span>
+                <input id="earnings-multiple" type="number" step="1" value="28" />
+                <span class="helper-text">Exchanges: 24x (CME) to 35x (Nasdaq)</span>
+              </label>
+              <label class="form-field">
+                <span>Growth premium (x)</span>
+                <input id="growth-premium" type="number" step="0.1" value="1.2" />
+                <span class="helper-text">Multiplier for crypto growth (1.0 = none)</span>
+              </label>
+              <label class="form-field">
+                <span>Risk discount (x)</span>
+                <input id="risk-discount" type="number" step="0.1" value="0.8" />
+                <span class="helper-text">Discount for regulatory risk (1.0 = none)</span>
+              </label>
+            </form>
+            <div class="note">
+              Traditional exchanges like HKEX (388.HK) are valued on stable fee income
+              and trading volumes—similar to Hyperliquid's business model.
+            </div>
+          </div>
+
+          <div class="card model-card">
+            <h3>Comparables Outputs</h3>
+            <div class="output-grid">
+              <div class="output-item">
+                <span class="output-label">Annual revenue (fees)</span>
+                <span class="output-value" id="comp-annual-revenue">--</span>
+              </div>
+              <div class="output-item">
+                <span class="output-label">Operating earnings</span>
+                <span class="output-value" id="comp-earnings">--</span>
+              </div>
+              <div class="output-item">
+                <span class="output-label">Adjustment factor</span>
+                <span class="output-value" id="comp-adjustment">--</span>
+              </div>
+              <div class="output-item">
+                <span class="output-label">P/S implied price</span>
+                <span class="output-value highlight" id="ps-implied-price">--</span>
+              </div>
+              <div class="output-item">
+                <span class="output-label">P/E implied price</span>
+                <span class="output-value highlight" id="pe-implied-price">--</span>
+              </div>
+            </div>
+            <div class="comparison-summary">
+              <h4>Valuation Summary</h4>
+              <table class="comparison-table">
+                <thead>
+                  <tr>
+                    <th>Method</th>
+                    <th>Implied Price</th>
+                    <th>vs Spot</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>DCF Model</td>
+                    <td id="summary-dcf-price">--</td>
+                    <td id="summary-dcf-upside">--</td>
+                  </tr>
+                  <tr>
+                    <td>P/S (Revenue)</td>
+                    <td id="summary-ps-price">--</td>
+                    <td id="summary-ps-upside">--</td>
+                  </tr>
+                  <tr>
+                    <td>P/E (Earnings)</td>
+                    <td id="summary-pe-price">--</td>
+                    <td id="summary-pe-upside">--</td>
+                  </tr>
+                  <tr class="average-row">
+                    <td>Average</td>
+                    <td id="summary-avg-price">--</td>
+                    <td id="summary-avg-upside">--</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

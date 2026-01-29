@@ -30,6 +30,27 @@ const elements = {
   terminalMultiple: document.getElementById("terminal-multiple"),
   forecastYears: document.getElementById("forecast-years"),
   circulatingSupply: document.getElementById("circulating-supply"),
+  // Exchange comparables inputs
+  revenueMultiple: document.getElementById("revenue-multiple"),
+  operatingMargin: document.getElementById("operating-margin"),
+  earningsMultiple: document.getElementById("earnings-multiple"),
+  growthPremium: document.getElementById("growth-premium"),
+  riskDiscount: document.getElementById("risk-discount"),
+  // Exchange comparables outputs
+  compAnnualRevenue: document.getElementById("comp-annual-revenue"),
+  compEarnings: document.getElementById("comp-earnings"),
+  compAdjustment: document.getElementById("comp-adjustment"),
+  psImpliedPrice: document.getElementById("ps-implied-price"),
+  peImpliedPrice: document.getElementById("pe-implied-price"),
+  // Summary table
+  summaryDcfPrice: document.getElementById("summary-dcf-price"),
+  summaryDcfUpside: document.getElementById("summary-dcf-upside"),
+  summaryPsPrice: document.getElementById("summary-ps-price"),
+  summaryPsUpside: document.getElementById("summary-ps-upside"),
+  summaryPePrice: document.getElementById("summary-pe-price"),
+  summaryPeUpside: document.getElementById("summary-pe-upside"),
+  summaryAvgPrice: document.getElementById("summary-avg-price"),
+  summaryAvgUpside: document.getElementById("summary-avg-upside"),
 };
 
 const state = {
@@ -212,6 +233,22 @@ function computeDCF(params) {
   return discounted + terminalPV;
 }
 
+function computeUpside(impliedPrice, spotPrice) {
+  if (!Number.isFinite(impliedPrice) || !Number.isFinite(spotPrice) || spotPrice === 0) {
+    return null;
+  }
+  return (impliedPrice - spotPrice) / spotPrice;
+}
+
+function formatUpsideCell(upside) {
+  if (!Number.isFinite(upside)) {
+    return "--";
+  }
+  const pct = upside * 100;
+  const sign = pct >= 0 ? "+" : "";
+  return `${sign}${formatPercent(pct, 1)}`;
+}
+
 function updateModel() {
   const useLiveVolume = elements.useLiveVolume.checked;
   elements.customDailyVolume.disabled = useLiveVolume;
@@ -241,22 +278,72 @@ function updateModel() {
     years,
   });
 
-  const impliedPrice = supply > 0 ? dcfValue / supply : null;
-  const impliedMarketCap = supply > 0 && Number.isFinite(impliedPrice) ? impliedPrice * supply : null;
+  const dcfImpliedPrice = supply > 0 ? dcfValue / supply : null;
+  const impliedMarketCap = supply > 0 && Number.isFinite(dcfImpliedPrice) ? dcfImpliedPrice * supply : null;
 
   elements.annualVolume.textContent = formatUsd(annualVolume, true);
   elements.annualFees.textContent = formatUsd(feeRevenue, true);
   elements.tokenCashflow.textContent = formatUsd(tokenCashflow, true);
   elements.dcfValue.textContent = formatUsd(dcfValue, true);
-  elements.impliedPrice.textContent = formatUsdPrice(impliedPrice);
+  elements.impliedPrice.textContent = formatUsdPrice(dcfImpliedPrice);
   elements.impliedMarketCap.textContent = formatUsd(impliedMarketCap, true);
 
-  if (state.hypeSpot && Number.isFinite(impliedPrice)) {
-    const upside = (impliedPrice - state.hypeSpot) / state.hypeSpot;
-    elements.priceUpside.textContent = formatPercent(upside * 100, 2);
+  const dcfUpside = computeUpside(dcfImpliedPrice, state.hypeSpot);
+  if (Number.isFinite(dcfUpside)) {
+    elements.priceUpside.textContent = formatPercent(dcfUpside * 100, 2);
   } else {
     elements.priceUpside.textContent = "--";
   }
+
+  // Exchange comparables calculations
+  const revenueMultiple = readInputValue(elements.revenueMultiple, 16);
+  const operatingMarginPct = readInputValue(elements.operatingMargin, 70);
+  const earningsMultiple = readInputValue(elements.earningsMultiple, 28);
+  const growthPremium = readInputValue(elements.growthPremium, 1.2);
+  const riskDiscount = readInputValue(elements.riskDiscount, 0.8);
+
+  // Adjustment factor combines growth premium and risk discount
+  const adjustmentFactor = growthPremium * riskDiscount;
+
+  // For exchange comps, use total fee revenue (not just token share)
+  const annualRevenue = feeRevenue;
+  const operatingEarnings = annualRevenue * (operatingMarginPct / 100);
+
+  // P/S valuation: Market Cap = Revenue × Multiple × Adjustment
+  const psMarketCap = annualRevenue * revenueMultiple * adjustmentFactor;
+  const psImpliedPrice = supply > 0 ? psMarketCap / supply : null;
+
+  // P/E valuation: Market Cap = Earnings × Multiple × Adjustment
+  const peMarketCap = operatingEarnings * earningsMultiple * adjustmentFactor;
+  const peImpliedPrice = supply > 0 ? peMarketCap / supply : null;
+
+  // Update exchange comps outputs
+  elements.compAnnualRevenue.textContent = formatUsd(annualRevenue, true);
+  elements.compEarnings.textContent = formatUsd(operatingEarnings, true);
+  elements.compAdjustment.textContent = `${adjustmentFactor.toFixed(2)}x`;
+  elements.psImpliedPrice.textContent = formatUsdPrice(psImpliedPrice);
+  elements.peImpliedPrice.textContent = formatUsdPrice(peImpliedPrice);
+
+  // Calculate upsides for all methods
+  const psUpside = computeUpside(psImpliedPrice, state.hypeSpot);
+  const peUpside = computeUpside(peImpliedPrice, state.hypeSpot);
+
+  // Calculate average of available valuations
+  const validPrices = [dcfImpliedPrice, psImpliedPrice, peImpliedPrice].filter(Number.isFinite);
+  const avgImpliedPrice = validPrices.length > 0
+    ? validPrices.reduce((sum, p) => sum + p, 0) / validPrices.length
+    : null;
+  const avgUpside = computeUpside(avgImpliedPrice, state.hypeSpot);
+
+  // Update summary table
+  elements.summaryDcfPrice.textContent = formatUsdPrice(dcfImpliedPrice);
+  elements.summaryDcfUpside.textContent = formatUpsideCell(dcfUpside);
+  elements.summaryPsPrice.textContent = formatUsdPrice(psImpliedPrice);
+  elements.summaryPsUpside.textContent = formatUpsideCell(psUpside);
+  elements.summaryPePrice.textContent = formatUsdPrice(peImpliedPrice);
+  elements.summaryPeUpside.textContent = formatUpsideCell(peUpside);
+  elements.summaryAvgPrice.textContent = formatUsdPrice(avgImpliedPrice);
+  elements.summaryAvgUpside.textContent = formatUpsideCell(avgUpside);
 }
 
 async function refreshData() {
@@ -288,6 +375,12 @@ function registerInputHandlers() {
     elements.terminalMultiple,
     elements.forecastYears,
     elements.circulatingSupply,
+    // Exchange comparables inputs
+    elements.revenueMultiple,
+    elements.operatingMargin,
+    elements.earningsMultiple,
+    elements.growthPremium,
+    elements.riskDiscount,
   ];
 
   inputs.forEach((input) => {
