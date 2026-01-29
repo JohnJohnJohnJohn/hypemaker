@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hyperliquid HYPE Valuation Dashboard</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <div class="header-title">
+          <h1>Hyperliquid Exchange + HYPE Valuation</h1>
+          <p>
+            Live market stats from Hyperliquid and a customizable valuation model for
+            HYPE. Adjust assumptions to explore price projections.
+          </p>
+        </div>
+        <div class="status-panel">
+          <div class="status-pill" id="api-status">Connecting...</div>
+          <div class="status-text" id="last-updated">Last updated: --</div>
+          <button class="ghost-button" id="refresh-button" type="button">
+            Refresh now
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="section" id="realtime-stats">
+        <div class="section-header">
+          <h2>Realtime Exchange Stats</h2>
+          <p>Powered by Hyperliquid public API.</p>
+        </div>
+        <div class="grid stats-grid">
+          <div class="card stat-card">
+            <h3>HYPE Price</h3>
+            <p class="stat-value" id="hype-price">--</p>
+            <p class="stat-sub" id="hype-change">--</p>
+          </div>
+          <div class="card stat-card">
+            <h3>HYPE 24h Volume</h3>
+            <p class="stat-value" id="hype-volume">--</p>
+            <p class="stat-sub">Notional volume (USD)</p>
+          </div>
+          <div class="card stat-card">
+            <h3>HYPE Open Interest</h3>
+            <p class="stat-value" id="hype-open-interest">--</p>
+            <p class="stat-sub">Contracts (base units)</p>
+          </div>
+          <div class="card stat-card">
+            <h3>Funding Rate</h3>
+            <p class="stat-value" id="hype-funding">--</p>
+            <p class="stat-sub">Latest funding snapshot</p>
+          </div>
+        </div>
+
+        <div class="grid stats-grid">
+          <div class="card stat-card">
+            <h3>Total 24h Volume</h3>
+            <p class="stat-value" id="total-volume">--</p>
+            <p class="stat-sub">Across all markets</p>
+          </div>
+          <div class="card stat-card">
+            <h3>Total Open Interest</h3>
+            <p class="stat-value" id="total-open-interest">--</p>
+            <p class="stat-sub">Aggregate open interest</p>
+          </div>
+          <div class="card stat-card">
+            <h3>Markets Tracked</h3>
+            <p class="stat-value" id="market-count">--</p>
+            <p class="stat-sub">Active markets in universe</p>
+          </div>
+          <div class="card stat-card">
+            <h3>API Health</h3>
+            <p class="stat-value" id="api-health">--</p>
+            <p class="stat-sub">Response latency</p>
+          </div>
+        </div>
+        <div class="note" id="data-note">
+          Live stats refresh every 15 seconds. If the API is unavailable, the
+          valuation model will continue using your custom assumptions.
+        </div>
+      </section>
+
+      <section class="section" id="valuation-model">
+        <div class="section-header">
+          <h2>HYPE Valuation Model</h2>
+          <p>
+            Estimate intrinsic value using exchange fee cash flows. All numbers are
+            assumptions you can edit.
+          </p>
+        </div>
+        <div class="grid model-grid">
+          <div class="card model-card">
+            <h3>Key Assumptions</h3>
+            <form class="form-grid" id="model-form">
+              <label class="form-field">
+                <span>Use live exchange volume</span>
+                <div class="toggle-row">
+                  <input id="use-live-volume" type="checkbox" checked />
+                  <span class="helper-text">Syncs with realtime volume</span>
+                </div>
+              </label>
+              <label class="form-field">
+                <span>Custom daily volume (USD)</span>
+                <input
+                  id="custom-daily-volume"
+                  type="number"
+                  min="0"
+                  step="1000000"
+                  value="2000000000"
+                />
+              </label>
+              <label class="form-field">
+                <span>Fee rate (%)</span>
+                <input id="fee-rate" type="number" step="0.01" value="0.04" />
+              </label>
+              <label class="form-field">
+                <span>Revenue share to token (%)</span>
+                <input id="token-share" type="number" step="1" value="25" />
+              </label>
+              <label class="form-field">
+                <span>Volume growth (annual %)</span>
+                <input id="growth-rate" type="number" step="1" value="20" />
+              </label>
+              <label class="form-field">
+                <span>Discount rate (annual %)</span>
+                <input id="discount-rate" type="number" step="1" value="25" />
+              </label>
+              <label class="form-field">
+                <span>Terminal multiple (x)</span>
+                <input id="terminal-multiple" type="number" step="1" value="18" />
+              </label>
+              <label class="form-field">
+                <span>Forecast horizon (years)</span>
+                <input id="forecast-years" type="number" step="1" value="5" />
+              </label>
+              <label class="form-field">
+                <span>Circulating supply (tokens)</span>
+                <input
+                  id="circulating-supply"
+                  type="number"
+                  step="1000000"
+                  value="1000000000"
+                />
+              </label>
+            </form>
+            <div class="note">
+              Tip: use live volume for market-synced estimates, or override it to test
+              different scenarios.
+            </div>
+          </div>
+
+          <div class="card model-card">
+            <h3>Model Outputs</h3>
+            <div class="output-grid">
+              <div class="output-item">
+                <span class="output-label">Annualized volume</span>
+                <span class="output-value" id="annual-volume">--</span>
+              </div>
+              <div class="output-item">
+                <span class="output-label">Annual fee revenue</span>
+                <span class="output-value" id="annual-fees">--</span>
+              </div>
+              <div class="output-item">
+                <span class="output-label">Token cash flow</span>
+                <span class="output-value" id="token-cashflow">--</span>
+              </div>
+              <div class="output-item">
+                <span class="output-label">DCF value</span>
+                <span class="output-value" id="dcf-value">--</span>
+              </div>
+              <div class="output-item">
+                <span class="output-label">Implied token price</span>
+                <span class="output-value highlight" id="implied-price">--</span>
+              </div>
+              <div class="output-item">
+                <span class="output-label">Implied market cap</span>
+                <span class="output-value" id="implied-market-cap">--</span>
+              </div>
+              <div class="output-item">
+                <span class="output-label">Upside vs spot</span>
+                <span class="output-value" id="price-upside">--</span>
+              </div>
+            </div>
+            <div class="note">
+              Outputs update automatically when live stats refresh or when you change
+              assumptions.
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>
+          This dashboard is for informational use only. It is not investment advice
+          and relies on public API data that may change or be delayed.
+        </p>
+      </div>
+    </footer>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
